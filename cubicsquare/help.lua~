@@ -1,0 +1,24 @@
+module(..., package.seeall)
+
+function new()
+   local localGroup = display.newGroup()
+   --> This is how we start every single file or "screen" in our folder, except for main.lua
+   -- and director.lua
+   --> director.lua is NEVER modified, while only one line in main.lua changes, described in that file
+   ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
+   local background = display.newImage ("helpscreen.png")
+   localGroup:insert(background)
+   --> This sets the background
+
+
+   local function pressBack (event)
+      if event.phase == "ended" then
+	 director:changeScene ("cubicsquare")
+      end
+   end
+   local backBtn = display.newImage("backicon.png",system.ResourceDirectory ,(display.contentWidth-32)/2, display.contentHeight-40)
+   localGroup:insert(backBtn)
+   backBtn:addEventListener ("touch", pressBack)
+   return localGroup
+end

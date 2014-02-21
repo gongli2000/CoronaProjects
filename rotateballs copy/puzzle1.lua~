@@ -1,0 +1,237 @@
+module(..., package.seeall)
+function new()
+   local localGroup = display.newGroup()
+   local xlimit=500
+   local physics = require("physics")
+   physics.start()
+   physics.setDrawMode( "normal" ) -- normal, hybrid, debug
+   local infotext =  display.newText("", 100,60,nil,20)
+
+   local anchor = display.newCircle( 0,0,5 )
+   localGroup:insert(anchor)
+   anchor.alpha = .1
+   physics.addBody( anchor, "static", { friction=0, bounce=0, density=0 } )
+
+   local floor = display.newRect(0,420,400,10)
+   localGroup:insert(floor)
+   physics.addBody( floor, "static", { friction=0, bounce=0, density=0 } )
+   local ceiling = display.newRect(0,20,400,10)
+   localGroup:insert(ceiling)
+   physics.addBody( ceiling, "static", { friction=0, bounce=0, density=0 } )
+
+
+   local h=400
+   local wallleft = display.newRect(0,display.contentHeight-60-h,10,h)
+   localGroup:insert(wallleft)
+   physics.addBody( wallleft, "static", { friction=0, bounce=0, density=0 } )
+   local wallright = display.newRect(display.contentWidth-10,display.contentHeight-60-h,10,h)
+   localGroup:insert(wallright)
+   physics.addBody( wallright, "static", { friction=0, bounce=0, density=0 } )
+
+
+   local function world2Screen(wx,wy)
+      print(wx,wy,display.contentWidth,display.contentHeight)
+      return  display.contentWidth * wx, display.contentHeight*wy
+   end
+
+   local function makeWall(x,y, width,height)
+      local wx,wy = world2Screen (x,y)
+      local wWidth,wHeight = world2Screen(width,height)
+      print(x,y,wx,wy)
+      print(width,height,wWidth,wHeight)
+      local wall = display.newRect(wx,wy,wWidth,wHeight)
+      localGroup:insert(wall)
+      physics.addBody( wall, "static", { friction=0, bounce=0, density=0 } )
+   end
+   
+   local function makeWalls(n)
+      local h=100
+      local wallWidth = 20
+      local w =(display.contentWidth-(n+1)*wallWidth)/n
+      for i=1,n do
+	 local wallright = display.newRect((w+wallWidth)*i,display.contentHeight-60-h,wallWidth,h)
+	 localGroup:insert(wallright)
+	 physics.addBody( wallright, "static", { friction=0, bounce=0, density=0 } )
+      end
+   end
+
+   local function cupHandler(event)
+      infotext.text="You did it"
+   end
+   
+   local function makeCup(x,y, wallWidth,wallHeight,cupWidth)
+      local h=400
+      local wallleft = display.newRect(x,y,wallWidth,wallHeight)
+      localGroup:insert(wallleft)
+      physics.addBody( wallleft, "static", { friction=0, bounce=0, density=1 } )
+      
+      local wallright = display.newRect(x+cupWidth,y,wallWidth,wallHeight,cupWidth)
+      localGroup:insert(wallright)
+      physics.addBody( wallright, "static", { friction=0, bounce=0, density=0 } )
+
+      local floor = display.newRect(x,y+wallHeight,cupWidth+wallWidth,wallWidth,cupWidth)
+      localGroup:insert(floor)
+      physics.addBody( floor, "static", {isSensor=true, friction=0, bounce=0, density=0 } )
+      floor:addEventListener("collision",cupHandler)
+      
+      local floor2 = display.newRect(x,y+wallHeight,cupWidth+wallWidth,wallWidth,cupWidth)
+      localGroup:insert(floor2)
+      physics.addBody( floor2, "static", { friction=0, bounce=0, density=0 } )
+   end
+
+   local function makeCupWeld(x,y, wallWidth,wallHeight,cupWidth)
+      local h=400
+      local cup = display.newLine(x,y,x,y+wallHeight)
+      localGroup:insert(cup)
+      cup.width = 10
+      cup:append(x+cupWidth,y+wallHeight,x+cupWidth,y)   
+      cup.fixture = physics.newJoint( "pivot", anchor, cup, cup.x, cup.y )
+      cup.fixture.isMotorEnabled = true
+      cup.fixture.motorSpeed = 10
+      cup.fixture.maxMotorTorque = 140
+
+      physics.addBody( cup, "dynamic", { friction=1, bounce=.1, density=3, radius=20 } )
+      
+      
+   end
+
+   local ballRadius = 10
+   local function tap ( event )
+      if(infotext ~= nil) then
+	 infotext.text=""
+      end
+      if(event.x < xlimit) then
+	 local ball = display.newCircle( event.x, event.y, ballRadius )
+	 physics.addBody( ball, "dynamic", { friction=1, bounce=.1, density=1, radius=ballRadius } )
+	 localGroup:insert(ball) 
+	 function ball:timer( event )
+	    if (ball.y >1500)  then
+	       timer.cancel( ball.t )
+	       ball.t = nil
+	       ball:removeSelf()
+	    end
+	 end
+	 ball.t = timer.performWithDelay( 10000, ball, 3 )
+      end
+   end
+
+   local centerDX = display.contentCenterX-100 
+   local addarm = function( hub,rot, width,length,bounce,x,y,r,g,b)
+		     local arm = display.newRect( 0, 0, width, length )
+		     localGroup:insert(arm)
+		     arm:setFillColor(r,g,b)
+		     arm.x, arm.y = x,y
+		     physics.addBody( arm, "dynamic", { friction=1, bounce=bounce, density=1 } )
+		     arm.connect = physics.newJoint( "weld", hub, arm, hub.x, hub.y )
+		     hub.rotation = hub.rotation + rot
+		  end
+
+
+   local function makeCupRot(n,xhub,yhub,rotspeed,width,height,r,g,b)
+      local hub = display.newLine(xhub,yhub,xhub,yhub+30)
+      hub:append(xhub+80,yhub+30,xhub+80,yhub)
+      hub.width=10
+      localGroup:insert(hub)
+      physics.addBody( hub, "dynamic", { friction=10, bounce=.1, density=3, radius=20 } )
+      hub.fixture = physics.newJoint( "pivot", anchor, hub, hub.x, hub.y )
+      hub.fixture.isMotorEnabled = true
+      hub.fixture.motorSpeed = 10
+
+   end
+   local function makehub(n,xhub,yhub,rotspeed,width,height,r,g,b)
+      local hub = display.newCircle(xhub,yhub,5)
+      localGroup:insert(hub)
+      hub:setFillColor(r,g,b)
+      physics.addBody( hub, "dynamic", { friction=1, bounce=.1, density=3, radius=20 } )
+      hub.fixture = physics.newJoint( "pivot", anchor, hub, hub.x, hub.y )
+      for i=1, n do
+	 addarm( hub,360/n  ,width,height,1.2,xhub,yhub-height,r,g,b)
+      end
+      hub.fixture.isMotorEnabled = true
+      hub.fixture.motorSpeed = rotspeed
+      hub.fixture.maxMotorTorque = 140
+
+   end
+   local height = 30
+   local width =15
+   local darm = 220
+   local ybase = display.contentCenterY+30
+
+   local function rotar3cups()
+      xlimit = 200
+      makeCup(240,120,10,30,50)
+      makeCup(240,220,10,30,50)
+      makeCup(240,330,10,30,50)
+      makehub(3,centerDX+20, ybase+20,400,width,40,255,0,0)
+   end
+
+   local function rotarWall()
+      xlimit = 200
+      makeWall(.5, .1, .05,.3) 
+      makeWall(.5, .5, .05, .3) 
+      makeCup(240,330,10,30,50)
+      makehub(3,centerDX+20, ybase+20,400,width,40,255,0,0)
+   end
+
+   local function rotarMovingCup()
+      xlimit = 200
+      makeCupRot(3,centerDX+180, ybase-20,400,width,40,255,0,0)
+      makehub(3,centerDX+20, ybase+20,400,width,40,255,0,0)
+   end
+
+   local function puzzle2()
+      xlimit = 500
+      makeWalls(10)
+      makehub(6,centerDX+50, ybase-150,90,width,height,255,0,0)
+      makehub(6,centerDX+150, ybase-50,-90,width,height,0,255,0)
+      makehub(6,centerDX+50, ybase,-90,width,height,255,0,255)
+   end
+
+   local function puzzle3()
+      xlimit = 500
+      makehub(6,centerDX+20, ybase+103,-190,width,height,255,0,0)
+      makehub(6,centerDX+190, ybase+103,-190,width,height,0,255,0)
+      makehub(6,centerDX+195, ybase,-190,width,height,255,0,255)
+      makehub(6,centerDX+195, ybase-100,-190,width,height,255,0,255)
+      makeCup(80,125,10,30,50)
+   end
+
+   local function handler(event)
+      director:changeScene("menu")
+   end
+
+   local puzzleFunctions = {
+      rotar3cups=rotar3cups,
+      rotarMovingCup = rotarMovingCup,
+      rotarWall=rotarWall,
+      puzzle2=puzzle2,
+      puzzle3=puzzle3
+   }
+			    
+   local backbtn = display.newText("Back",200,50,nil,20)
+   backbtn:addEventListener("tap", handler)
+   localGroup:insert(backbtn)
+   puzzleFunctions[director.id]()
+
+   Runtime:addEventListener( "tap", tap )
+
+
+   -- PENDULUM
+   --local pend = display.newRect( 0, 0, 10, 100 )
+   --pend.x, pend.y = 100, display.contentCenterY
+   --physics.addBody( pend, "dynamic", { friction=1, bounce=.1, density=3 } )
+
+   --pend.axis = physics.newJoint( "pivot", anchor, pend, pend.x, pend.y-pend.height/2 )
+   --pend.axis.isMotorEnabled = true
+   --pend.axis.motorSpeed = 20
+   --pend.axis.maxMotorTorque = 40
+
+   --function pend:timer( event )
+   --   if (pend.rotation > 50 or pend.rotation < -50) then
+   --       pend.axis.motorSpeed = 1 - pend.axis.motorSpeed
+   --   end
+   --end
+
+   return localGroup
+end
+--pend.pulse = timer.performWithDelay( 500, pend, 0 )

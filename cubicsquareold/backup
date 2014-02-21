@@ -1,0 +1,98 @@
+b = {}
+grp = display.newGroup()
+grp.rotation=0
+n = 4
+dx = 50
+offset =50
+
+xx=2
+
+local function getiy(i)
+   return {i-1, i-1, i-1, i,  i,   i+1, i+1, i+1,i}
+end
+
+local function getjx(j)
+  return {j-1, j,   j+1, j-1,j+1, j-1, j,    j+1,j}
+end
+
+
+
+local function getCell(bb,k,iy,jx)
+   return bb[iy[k]][jx[k]]
+end
+
+local function addNeighbors(i,j)
+   local iy = getiy(i)
+   local jx = getjx(j)
+   for k=1,9 do 
+      grp:insert(getCell(b,k,iy,jx))
+   end
+   return grp
+end
+
+local function getTrans ()
+   return {7,8,1,2,3,4,5,6,9}
+end
+
+local function moveCells(i,j)
+   local iy = getiy(i)
+   local jx = getjx(j)
+   local kk = getTrans()
+   local x = {}
+   for k =1,9 do
+      x[k] = getCell(b,k,iy,jx) 
+   end
+   
+   for k=1,9 do
+      b[iy[k]][jx[k]] = x[kk[k]]
+     xx=xx+1
+   end
+end
+
+
+local function getcoords(x,y)
+   local i = math.floor((x-offset)/dx)+1
+   local j = math.floor((y-offset)/dx)+1
+   return {j,i}
+end
+
+local function touchGuy(event)
+   local o= event.target
+   c= getcoords(o.x,o.y)
+   print ("coooords " )
+   print(o.x,o.y)
+   print (c[1],c[2])
+   local grp = addNeighbors(c[1],c[2])
+
+   grp:setReferencePoint(display.CenterReferencePoint)
+   grp.rotation = grp.rotation + 90
+   transition.to(grp,{time=535,rotation =90,delta=true})
+   moveCells(i,j)
+end
+
+
+
+local function makeBoard(n,dx)
+   local board ={}
+   for i = 1,n do
+      board[i] = {}
+      y0 = (i-1)* dx + offset
+      for j =1,n do
+	 x0 = (j-1)*dx + offset
+	 board[i][j] =display.newRect(x0,y0,dx-2,dx-2)
+	 board[i][j].myCoords = {i,j} 
+	
+	 board[i][j]:setFillColor(50+x0*50,50+y0*50,50+x0)
+	 board[i][j]:addEventListener("tap",touchGuy)
+      end
+   end
+   return board
+end
+
+b = makeBoard(n,dx)
+
+
+
+
+
+

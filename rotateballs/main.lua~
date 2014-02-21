@@ -1,0 +1,40 @@
+display.setStatusBar (display.HiddenStatusBar)
+--> Hides the status bar
+local director = require ("director")
+--> Imports director
+
+local mainGroup = display.newGroup()
+--> Creates a main group
+
+local function onSystemEvent ( event )
+   local quitOnDeviceOnly = true
+   if quitOnDeviceOnly and system.getInfo("environment")=="device" then
+      if( event.type == "applicationExit" ) then
+	 -- save some data
+	 -- and then quit the game
+	 native.showAlert( "end","", { "Next Level", "Stay On Level" }, nil )
+	 os.exit()
+      elseif ( event.type == "applicationSuspend") then
+	 native.showAlert( "suspend","", { "Next Level", "Stay On Level" }, nil )
+      elseif (event.type == "applicationStart") then
+	 native.showAlert( "start","", { "Next Level", "Stay On Level" }, nil )
+      end
+   end
+end
+
+local function main()
+   --> Adds main function
+   
+   Runtime:addEventListener( "system", onSystemEvent )
+   mainGroup:insert(director.directorView)
+   --> Adds the group from director
+   
+   director:changeScene("menu")
+   --> Change the scene, no effects
+
+   
+   return true
+end
+
+main()
+--> Starts our app

@@ -1,0 +1,6 @@
+
+Larry's Square
+
+A two dimensional version of the popular cube puzzle. Rotate 3 x 3 blocks of tiles to unscramble the puzzle. Or just play and try to create interesting patterns. Several interesting patterns are given.  Several levels of play. Can't solve the puzzle. See the solution to get an idea of how things work.
+
+Check out the website for tips and information and the mathematics behind Larry's Square.

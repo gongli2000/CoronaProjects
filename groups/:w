@@ -1,0 +1,10 @@
+g = display.newRect(100,100,20,20)
+h = display.newRect(80,80,20,20)
+x = display.newGroup()
+
+x:insert(g)
+x:insert(h)
+x:setReferencePoint(display.CenterReferencePoint)
+transition.to(x,{ time=500,rotation=90, delta=true})
+
+transition.to(x,{ time=500,rotation=90, delta=true})

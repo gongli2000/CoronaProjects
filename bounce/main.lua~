@@ -1,0 +1,69 @@
+local physics = require("physics")
+physics.start()
+physics.setScale( 33)
+physics.setGravity( 0, 0 )
+
+
+
+
+function makeBall(c,color,v0,density,bounce)
+   local ball = display.newCircle(c.x,c.y,c.r)
+   ball:setFillColor(color.r,color.g,color.b)
+   physics.addBody(ball,{density=density,friction=0,bounce=bounce,radius=25})
+   ball:setLinearVelocity(0,v0)
+   return ball
+end
+
+
+function makeColor(r,g,b)
+   return {r=r,g=g,b=b}
+end
+
+function makeCircle(x,y,r)
+   return {x=x,y=y,r=r}
+end
+
+
+function ballApply(ball1,ball2,forceFactor)
+ vx = ball2.x-ball1.x
+ vy = ball2.y-ball1.y
+ d12 = math.sqrt(vx^2 + vy^2)
+ f1x = forceFactor*vx/d12
+ f1y = forceFactor*vy/d12
+ ball1:applyForce(f1.x,f1.y, ball1.x,ball1.y)
+ ball2:applyForce( -f1x, -f1y, ball2.x, ball2.y )
+end
+
+local v1 =0 
+local v2 =11 
+local b2 = makeBall(makeCircle(150,250,5), makeColor(0,0,255),  v2,1,0)
+local b1 = makeBall(makeCircle(250,250,50), makeColor(25,0,255),  v1,1,0)
+
+local b3 = makeBall(makeCircle(175,450,15), makeColor(255,255,0),0,1,0)
+local b4 = makeBall(makeCircle(200,400,30), makeColor(255,255,0),5,1,0)
+local b5 = makeBall(makeCircle(300,400,30), makeColor(155,255,0),5,1,0)
+
+function ballForce(event) 
+   ballApply(b1,b2,1)
+   ballApply(b1,b3,1)
+   ballApply(b2,b3,5)
+   ballApply(b1,b4,1)
+   ballApply(b2,b4,1)
+   ballApply(b3,b4,1)
+   ballApply(b1,b5,1)
+   ballApply(b2,b5,1)
+   ballApply(b3,b5,1)
+   ballApply(b4,b5,1)
+    
+end
+
+
+
+function ballForce2(event)
+   ballApply(b1,b2,1000)
+end
+
+Runtime:addEventListener("enterFrame", ballForce)
+
+
+main()

@@ -1,0 +1,80 @@
+module(..., package.seeall)
+
+
+
+function new()
+   local colorUtils = require("colors")
+   local utils= require("utils")
+   local makeBoard = utils.makeBoard
+   local rotateGroup = utils.rotateGroup
+   local changeGroup = utils.changeGroup
+   local doboard = utils.doboard
+   local localGroup = display.newGroup()
+   --> This is how we start every single file or "screen" in our folder, except for main.lua
+   -- and director.lua
+   --> director.lua is NEVER modified, while only one line in main.lua changes, described in that file
+   ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
+
+   local function pressPlay (event)
+      if event.phase == "ended" then
+	 director:changeScene ("cubicsquare")
+      end
+      return true
+   end
+
+   local function pressSettings (event)
+      if event.phase == "ended" then
+	 director:changeScene ("levels")
+      end
+   end
+
+   local function pressHelp (event)
+      if event.phase == "ended" then
+	 director:changeScene ("help")
+      end
+   end
+
+   --set background
+   local background = display.newImage ("backgroundblue.png")
+   localGroup:insert(background)
+
+
+   -- set button
+   local btnx =100
+   local btny = 40
+   local dy = 110
+   local fontsize = 36
+   local boardSize=4
+   local rectSize = 15
+   local rightX=btnx-(boardSize*rectSize)-2
+   local displaynewText =utils.displaynewText
+   
+   local titleText = displaynewText("Larry's Square", 25,50,40)
+
+   
+   localGroup:insert(titleText)
+   btny = btny+dy
+   local playBtn = displaynewText ("Play",btnx+10,btny,fontsize)
+   playBtn:addEventListener ("touch", pressPlay)
+   localGroup:insert(playBtn)
+--   doboard(rectSize,localGroup,boardSize,rightX,btny,{},{},pressPlay)
+        	
+
+   btny = btny+dy
+   local settingsBtn = displaynewText ("Levels",btnx+10,btny,fontsize)
+   localGroup:insert(settingsBtn)
+   settingsBtn:addEventListener ("touch", pressSettings)
+ --  doboard(rectSize,localGroup,boardSize,rightX,btny,{2,3,4},{90,90,90},pressSettings)
+   
+
+   btny = btny+dy
+   local helpBtn = displaynewText ("Help", btnx+10,btny,fontsize)
+   helpBtn:addEventListener ("touch", pressHelp)
+   localGroup:insert(helpBtn)
+  -- doboard(rectSize,localGroup,boardSize,rightX,btny,{2},{90},pressHelp,4)
+
+
+   return localGroup
+end
+--> This is how we end every file except for director and main, as mentioned in my first comment

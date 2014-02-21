@@ -2,6 +2,7 @@ display.setStatusBar (display.HiddenStatusBar)
 --> Hides the status bar
 local utils = require("utils")
 local director = require ("director")
+require("refPointConversions") 
 --> Imports director
 
 local mainGroup = display.newGroup()
